@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBG">
+    android:background="@color/colorDark0">
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -40,7 +40,7 @@
                 android:ems="10"
                 android:hint="Platform"
                 android:inputType="textPersonName"
-                android:textColor="@android:color/white"
+                android:textColor="@color/colorLight"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -58,6 +58,7 @@
 
             <EditText
                 android:id="@+id/usernameET"
+                android:textColor="@android:color/white"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -80,6 +81,7 @@
 
             <EditText
                 android:id="@+id/emailET"
+                android:textColor="@android:color/white"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -102,6 +104,7 @@
 
             <EditText
                 android:id="@+id/passwordET"
+                android:textColor="@android:color/white"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -124,6 +127,7 @@
 
             <EditText
                 android:id="@+id/addInfoET"
+                android:textColor="@android:color/white"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -142,10 +146,10 @@
         android:layout_marginTop="20dp"
         android:layout_marginEnd="8dp"
         android:background="@drawable/button_bg"
+        android:textColor="@color/colorDark0"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
         android:text="Add Login"
-        android:textColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout" />

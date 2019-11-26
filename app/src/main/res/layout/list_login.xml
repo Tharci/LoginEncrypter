@@ -5,7 +5,7 @@
     android:id="@+id/asdLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBG">
+    android:background="@color/colorDark0">
 
     <ScrollView
         android:id="@+id/scrollView"
@@ -222,8 +222,8 @@
         android:layout_marginEnd="40dp"
         android:layout_marginBottom="10dp"
         android:background="@drawable/button_bg"
+        android:textColor="@color/colorDark0"
         android:text="Save changes"
-        android:textColor="@android:color/white"
         android:textSize="12sp" />
 
     <Button
@@ -235,8 +235,8 @@
         android:layout_marginStart="40dp"
         android:layout_marginBottom="10dp"
         android:background="@drawable/button_bg"
+        android:textColor="@color/colorDark0"
         android:text="Discard changes"
-        android:textColor="@android:color/white"
         android:textSize="12sp" />
 
 </RelativeLayout>

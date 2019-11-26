@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBG">
+    android:background="@color/colorDark0">
 
     <TextView
         android:id="@+id/textView6"
@@ -14,6 +14,7 @@
         android:layout_marginTop="30dp"
         android:layout_marginEnd="8dp"
         android:background="@drawable/edittext"
+        android:textColor="@android:color/white"
         android:text='Import / Export Path: "ext\\data.txt"'
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -28,7 +29,7 @@
         android:layout_marginTop="30dp"
         android:background="@drawable/button_bg"
         android:text="Import"
-        android:textColor="@android:color/white"
+        android:textColor="@color/colorDark0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView6" />
 
@@ -39,8 +40,8 @@
         android:layout_marginTop="30dp"
         android:layout_marginEnd="50dp"
         android:background="@drawable/button_bg"
+        android:textColor="@color/colorDark0"
         android:text="Export"
-        android:textColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView6" />
 </android.support.constraint.ConstraintLayout>

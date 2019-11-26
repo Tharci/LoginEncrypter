@@ -1,10 +1,14 @@
 package com.tharci.loginencrypter;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -79,41 +83,57 @@ public class surePopUp_impExp extends Activity
                     //yesButton.setText(text);*/
                     StringBuilder sb = new StringBuilder();
                     File fileIn = new File(Environment.getExternalStorageDirectory().getPath() + "/data.txt");
-                    FileInputStream fis = new FileInputStream(fileIn);
 
-                    if(fis!=null)
-                    {
-                        InputStreamReader isr = new InputStreamReader(fis);
-                        BufferedReader br = new BufferedReader(isr);
-
-                        String line = null;
-                        Boolean firstLine = true;
-                        while((line = br.readLine()) != null)
-                        {
-                            if(!firstLine){sb.append("\n");}
-                            firstLine = false;
-                            sb.append(line);
-                        }
-                        fis.close();
-                        text = sb.toString();
+                    if (!checkPermissionForReadExtertalStorage()) {
+                        requestPermissionForReadExtertalStorage();
                     }
 
-                } catch (Exception e) {
-                    Toast.makeText(getBaseContext(), "Failed to import", Toast.LENGTH_SHORT).show();
-                }
+                    FileInputStream fis = new FileInputStream(fileIn);
 
-                try
-                {
+                    InputStreamReader isr = new InputStreamReader(fis);
+                    BufferedReader br = new BufferedReader(isr);
+
+                    String line;
+                    boolean firstLine = true;
+                    while((line = br.readLine()) != null)
+                    {
+                        if(!firstLine){sb.append("\n");}
+                        firstLine = false;
+                        sb.append(line);
+                    }
+                    fis.close();
+                    text = sb.toString();
+
                     writeToFile(text);
+
                     Toast.makeText(getBaseContext(), "Successfully imported.",Toast.LENGTH_SHORT).show();
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
-                    Toast.makeText(getBaseContext(), "Failed to import.",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getBaseContext(), "Failed to import", Toast.LENGTH_SHORT).show();
                 }
 
                 finish();
             }
         });
+    }
+
+    public boolean checkPermissionForReadExtertalStorage() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            int result = this.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+            return result == PackageManager.PERMISSION_GRANTED;
+        }
+        return false;
+    }
+
+    public void requestPermissionForReadExtertalStorage() throws Exception {
+        try {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    0x3);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
 

@@ -487,14 +487,13 @@ public class listLoginFragment extends Fragment {
                         platformET.setTextSize(20);
                         platformET.setId(i * 5 + 0);
                         platformET.setPadding(20, 0, 30, 8);
-                        platformET.setTextColor(getResources().getColor(R.color.colorBlack));
                         platformET.setTypeface(null, Typeface.BOLD);
                         platformET.setText(dePlat);
                         platformET.setSingleLine();
                         platformET.setBackgroundResource(R.drawable.edittext);
                         platformET.setWidth(700);
                         platformET.setLayoutParams(spaceFillParams);
-                        platformET.setTextColor(getResources().getColor(R.color.colorBG));
+                        platformET.setTextColor(getResources().getColor(R.color.white));
                         platformHL.addView(platformET);
 
                         /*View spaceFill = new View(context);
@@ -578,7 +577,7 @@ public class listLoginFragment extends Fragment {
                             TextView titleTV = new TextView(context);
                             titleTV.setText(titles[k]);
                             titleTV.setPadding(40, 5, 5, 5);
-                            titleTV.setTextColor(getResources().getColor(R.color.colorBlack));
+                            titleTV.setTextColor(getResources().getColor(R.color.colorDark0));
                             titleTV.setWidth(tv_width);
                             horLayout.addView(titleTV);
 
@@ -586,7 +585,7 @@ public class listLoginFragment extends Fragment {
                             editText.setSingleLine();
                             editText.setId(i * 5 + (k+1));
                             editText.setPadding(5, 5, 5, 5);
-                            editText.setTextColor(getResources().getColor(R.color.colorBlack));
+                            editText.setTextColor(getResources().getColor(R.color.white));
                             editText.setText(decriypted);
                             editText.setBackgroundResource(R.drawable.edittext);
                             editText.setSingleLine();

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBG"
+    android:background="@color/colorDark0"
     tools:context=".MainActivity">
 
     <EditText
@@ -15,6 +15,7 @@
         android:layout_marginTop="15dp"
         android:layout_marginEnd="8dp"
         android:background="@drawable/row_listlogin"
+        android:textColor="@android:color/white"
         android:ems="10"
         android:hint="PIN"
         android:inputType="numberPassword"
@@ -31,7 +32,7 @@
         android:layout_marginEnd="20dp"
         android:background="@drawable/button_bg"
         android:text="Here u go"
-        android:textColor="@android:color/white"
+        android:textColor="@color/colorDark0"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/errorMessage" />
 

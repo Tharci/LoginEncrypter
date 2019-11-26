@@ -4,6 +4,7 @@
     package="com.tharci.loginencrypter">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
         android:allowBackup="true"
@@ -32,11 +33,6 @@
             android:name=".surePopUp"
             android:theme="@style/AppTheme.PopupTheme"
             android:screenOrientation="portrait"/>
-        <activity
-            android:name=".TestAct"
-            android:label="@string/title_activity_test"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait"></activity>
         <activity
             android:name=".surePopUp_impExp"
             android:theme="@style/AppTheme.PopupTheme"

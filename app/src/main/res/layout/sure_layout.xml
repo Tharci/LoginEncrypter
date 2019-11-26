@@ -5,7 +5,7 @@
     style="@style/AppTheme.PopupTheme"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/popup_bg"
+    android:background="@color/colorDark1"
     android:padding="10dp">
 
     <TextView
