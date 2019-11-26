@@ -15,7 +15,7 @@
         android:layout_marginEnd="8dp"
         android:background="@drawable/edittext"
         android:textColor="@android:color/white"
-        android:text='Import / Export Path: "ext\\data.txt"'
+        android:text='Import / Export Path: "ext\\data.dat"'
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

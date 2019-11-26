@@ -30,11 +30,7 @@
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="portrait"/>
         <activity
-            android:name=".surePopUp"
-            android:theme="@style/AppTheme.PopupTheme"
-            android:screenOrientation="portrait"/>
-        <activity
-            android:name=".surePopUp_impExp"
+            android:name=".popUpWindowActivity"
             android:theme="@style/AppTheme.PopupTheme"
             android:screenOrientation="portrait"/>
     </application>

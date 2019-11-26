@@ -33,8 +33,6 @@ public class newLoginFragment extends Fragment {
         myView = inflater.inflate(R.layout.new_login, container, false);
 
         sharedStuff = SharedStuff.getInstance();
-        abc = sharedStuff.abc;
-        abcLen = sharedStuff.abcLen;
 
         addLoginButton = myView.findViewById(R.id.addLoginButton);
         addLoginButton.setOnClickListener(new View.OnClickListener() {
@@ -63,17 +61,12 @@ public class newLoginFragment extends Fragment {
         return num;
     }
 
-    public String numToChar(Integer in)
-    {
-        return abc[in];
-    }
-
     public void addLogin()
     {
         EditText platformET = getActivity().findViewById(R.id.platformET);
         EditText usernameET = getActivity().findViewById(R.id.usernameET);
         EditText emailET = getActivity().findViewById(R.id.emailET);
-        EditText passwordET = getActivity().findViewById(R.id.passwordET);
+        EditText passwordET = getActivity().findViewById(R.id.passwordCreateET);
         EditText addInfoET = getActivity().findViewById(R.id.addInfoET);
 
         String platform = platformET.getText().toString();
@@ -85,138 +78,25 @@ public class newLoginFragment extends Fragment {
         addInfoET.setSingleLine();
 
         if ( !(platform.trim().isEmpty()) ) {
-            Integer pointer = 0;
-            Integer pointerMax = 64;
+            String dataRow = platform + "÷÷" + username + "÷÷" + email + "÷÷" + password + "÷÷" + addInfo + "÷÷\n";
 
-            String enPlatform = "";
-            for (Integer i = 0; i < platform.length(); i++) {
-                enPlatform += encryptChar(platform.charAt(i), pointer);
-                pointer++;
-                if (pointer == pointerMax) {
-                    pointer = 0;
-                }
+            try {
+                String data = sharedStuff.readData() + dataRow;
+
+                platformET.setText("");
+                usernameET.setText("");
+                emailET.setText("");
+                passwordET.setText("");
+                addInfoET.setText("");
+
+                sharedStuff.saveData(data);
+
+                Toast.makeText(getActivity().getBaseContext(), "Data has been saved.", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Toast.makeText(getActivity().getBaseContext(), "Save failed.", Toast.LENGTH_SHORT).show();
             }
-            //platformET.setText(enPlatform);
-            //usernameET.setText(dePlatform);
-
-            String enUsername = "";
-            for (Integer i = 0; i < username.length(); i++) {
-                enUsername += encryptChar(username.charAt(i), pointer);
-                pointer++;
-                if (pointer == pointerMax) {
-                    pointer = 0;
-                }
-            }
-
-            String enEmail = "";
-            for (Integer i = 0; i < email.length(); i++) {
-                enEmail += encryptChar(email.charAt(i), pointer);
-                pointer++;
-                if (pointer == pointerMax) {
-                    pointer = 0;
-                }
-            }
-
-            String enPassword = "";
-            for (Integer i = 0; i < password.length(); i++) {
-                enPassword += encryptChar(password.charAt(i), pointer);
-                pointer++;
-                if (pointer == pointerMax) {
-                    pointer = 0;
-                }
-            }
-
-            String enAddInfo = "";
-            for (Integer i = 0; i < addInfo.length(); i++) {
-                enAddInfo += encryptChar(addInfo.charAt(i), pointer);
-                pointer++;
-                if (pointer == pointerMax) {
-                    pointer = 0;
-                }
-            }
-
-            writeToFile(enPlatform + "÷÷" + enUsername + "÷÷" + enEmail + "÷÷" + enPassword + "÷÷" + enAddInfo + "÷÷\n");
-
-            platformET.setText("");
-            usernameET.setText("");
-            emailET.setText("");
-            passwordET.setText("");
-            addInfoET.setText("");
-
-
-            Toast.makeText(getActivity().getBaseContext(), "Data has been saved.", Toast.LENGTH_SHORT).show();
-            /*Snackbar.make(myView, "Data has been saved.", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();*/
         } else {
             Toast.makeText(getActivity().getBaseContext(), "You cant leave field platform empty!", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    public String encryptChar(Character c, Integer pointer)
-    {
-        if (charToNum(c) >= 0)
-        {
-            return numToChar( ( charToNum(c) + sharedStuff.pin * charToNum(sharedStuff.pinHash.charAt(pointer))) % abcLen );
-        } else
-        {
-            return "ß";
-        }
-    }
-
-    public String decryptChar(Character c, Integer pointer)
-    {
-        if (c == 'ß')
-        {
-            return "?";
-        } else
-        {
-            Integer deInt = (charToNum(c) - sharedStuff.pin * charToNum(sharedStuff.pinHash.charAt(pointer))) % abcLen;
-            if (deInt < 0) {deInt += abcLen;}
-            return numToChar(deInt);
-        }
-    }
-
-    public void writeToFile (String string) {
-
-        BufferedWriter bw = null;
-        //EditText platformET = getActivity().findViewById(R.id.platformET);
-
-        try {
-            //platformET.setText("0");
-
-            //// DELETES FILE
-            /*File dir = getActivity().getFilesDir();
-            File file = new File(dir, "data.txt");
-            file.delete();*/
-
-            try
-            {
-                //// CHECK IF DATA.TXT EXISTS
-                InputStream inputStream = getActivity().openFileInput("data.txt");
-            } catch(Exception e)
-            {
-                //// CREATE DATA.TXT
-                //OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getActivity().openFileOutput("data.txt", Context.MODE_PRIVATE));
-                //outputStreamWriter.close();
-            }
-
-            //// APPEND MODE SET HERE
-            /*bw = new BufferedWriter(new FileWriter("data.txt", true));
-            platformET.setText("3");
-            bw.write(s);
-            bw.flush();*/
-            FileOutputStream fos = getActivity().openFileOutput("data.txt", Context.MODE_APPEND);
-            fos.write(string.getBytes());
-            fos.close();
-            //platformET.setText("DONE");
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            //platformET.setText("Dck");
-        } finally {
-            if (bw != null) try {
-                bw.close();
-            } catch (IOException ioe2) { }
-        }
-
     }
 }
