@@ -1,10 +1,7 @@
 package com.tharci.loginencrypter;
 
 import android.app.Fragment;
-import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,18 +9,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-public class newLoginFragment extends Fragment {
+public class NewLoginFragment extends Fragment {
 
     View myView;
     Button addLoginButton;
-
-    String[] abc;
-    Integer abcLen;
 
     SharedStuff sharedStuff;
 
@@ -46,21 +38,6 @@ public class newLoginFragment extends Fragment {
         return myView;
     }
 
-    public Integer charToNum(Character c)
-    {
-        Integer num = -1;
-        for (Integer i=0; i < abc.length; i++)
-        {
-            if (c == abc[i].toCharArray()[0])
-            {
-                num = i;
-                break;
-            }
-        }
-
-        return num;
-    }
-
     public void addLogin()
     {
         EditText platformET = getActivity().findViewById(R.id.platformET);
@@ -81,7 +58,7 @@ public class newLoginFragment extends Fragment {
             String dataRow = platform + "÷÷" + username + "÷÷" + email + "÷÷" + password + "÷÷" + addInfo + "÷÷\n";
 
             try {
-                String data = sharedStuff.readData() + dataRow;
+                String data = sharedStuff.loadData() + dataRow;
 
                 platformET.setText("");
                 usernameET.setText("");

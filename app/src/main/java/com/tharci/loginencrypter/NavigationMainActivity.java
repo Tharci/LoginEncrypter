@@ -2,14 +2,15 @@ package com.tharci.loginencrypter;
 
 import android.app.FragmentManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
+import com.google.android.material.navigation.NavigationView;
 
 public class NavigationMainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -31,7 +32,7 @@ public class NavigationMainActivity extends AppCompatActivity
         fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
                 .replace(R.id.nav_main_frameLayout,
-                        new listLoginFragment())
+                        new ListLoginFragment())
                 .commit();
 
 
@@ -61,24 +62,26 @@ public class NavigationMainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.nav_listLogin)
-        {
+        if (id == R.id.nav_listLogin) {
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_main_frameLayout,
-                            new listLoginFragment())
+                            new ListLoginFragment())
                     .commit();
 
-        } else if (id == R.id.nav_newLogin)
-        {
+        } else if (id == R.id.nav_newLogin) {
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_main_frameLayout,
-                            new newLoginFragment())
+                            new NewLoginFragment())
                     .commit();
-        } else if (id == R.id.nav_impExp)
-        {
+        } else if (id == R.id.nav_impExp) {
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_main_frameLayout,
-                            new impExpFragment())
+                            new ImpExpFragment())
+                    .commit();
+        } else if (id == R.id.settings) {
+            fragmentManager.beginTransaction()
+                    .replace(R.id.nav_main_frameLayout,
+                            new SettingsFragment())
                     .commit();
         }
 

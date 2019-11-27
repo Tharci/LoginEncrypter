@@ -16,6 +16,10 @@
             android:id="@+id/nav_impExp"
             android:icon="@android:drawable/ic_menu_help"
             android:title="Import / Export" />
+        <item
+            android:id="@+id/settings"
+            android:icon="@android:drawable/ic_menu_help"
+            android:title="Settings" />
     </group>
 
 </menu>

@@ -4,15 +4,16 @@ import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.HashMap;
-import java.util.Objects;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKeyFactory;
@@ -20,7 +21,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class SharedStuff {
+class SharedStuff {
     private static SharedStuff instance = new SharedStuff();
     static SharedStuff getInstance()
     {
@@ -39,10 +40,28 @@ public class SharedStuff {
         popUpWindowHandler.post(popUpWindowRunnable);
     }
 
-    static String DATAPATH = "data.dat";
+    static String DATA_FILENAME = "data.dat";
+    static String FINGERPRINT_FILENAME = "fingerprint.dat";
 
     String passwordHash;
-    static String randomStringForHash = "rPhHegQyJthn3dcThN1gHIUzylWzZJgAjGGueO8ZtzcwLlwiMsEIwIlyAebmhTFDqK6LvZCc5aCelcbXWjtmuQ9SOHCZCLDhCOs1ULW2o53NAbDU3QALCjsnSawD3FqB";
+    private static String randomStringForHash = "rPhHegQyJthn3dcThN1gHIUzylWzZJgAjGGueO8ZtzcwLlwiMsEIwIlyAebmhTFDqK6LvZCc5aCelcbXWjtmuQ9SOHCZCLDhCOs1ULW2o53NAbDU3QALCjsnSawD3FqB";
+
+    boolean fileExists(String filename) {
+        try
+        {
+            InputStream inputStream = context.openFileInput(filename);
+            inputStream.close();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    void deleteFile(String filename) {
+        File dir = context.getFilesDir();
+        File file = new File(dir, filename);
+        file.delete();
+    }
 
     private String hashSimple(String string)
     {
@@ -111,14 +130,14 @@ public class SharedStuff {
         return map;
     }
 
-    private byte[] decryptData(HashMap<String, byte[]> map, String passwordString)
+    private String decryptData(HashMap<String, byte[]> map, String passwordString)
     {
         byte[] decrypted = null;
         try
         {
-            byte salt[] = map.get("salt");
-            byte iv[] = map.get("iv");
-            byte encrypted[] = map.get("encrypted");
+            byte[] salt = map.get("salt");
+            byte[] iv = map.get("iv");
+            byte[] encrypted = map.get("encrypted");
 
             //regenerate key from password
             char[] passwordChar = passwordString.toCharArray();
@@ -138,44 +157,59 @@ public class SharedStuff {
             Log.e("MYAPP", "decryption exception", e);
         }
 
-        return decrypted;
+        return new String(decrypted);
     }
 
-    void saveData(String data) throws java.io.IOException {
-        HashMap<String, byte[]> map = encryptBytes(data.getBytes(), passwordHash);
-
-        FileOutputStream fos = context.openFileOutput(DATAPATH, Context.MODE_PRIVATE);
+    void saveMap(HashMap<String, byte[]> map, String filename) throws java.io.IOException {
+        FileOutputStream fos = context.openFileOutput(filename, Context.MODE_PRIVATE);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(map);
         oos.close();
         fos.close();
     }
 
-    String readData() throws java.io.IOException, java.lang.ClassNotFoundException {
-        FileInputStream fis = context.openFileInput (DATAPATH);
+    HashMap<String, byte[]> loadMap(String filename) throws java.io.IOException, java.lang.ClassNotFoundException {
+        FileInputStream fis = context.openFileInput(filename);
         ObjectInputStream ois = new ObjectInputStream(fis);
         HashMap<String, byte[]> map = (HashMap<String, byte[]>) ois.readObject();
-        String decryptedString = new String(decryptData(map, passwordHash));
         ois.close();
         fis.close();
 
+        return map;
+    }
+
+    void saveData(String data) throws java.io.IOException {
+        HashMap<String, byte[]> map = encryptBytes(data.getBytes(), passwordHash);
+        saveMap(map, DATA_FILENAME);
+    }
+
+    String loadData() throws java.io.IOException, java.lang.ClassNotFoundException {
+        String decryptedString = decryptData(loadMap(DATA_FILENAME), passwordHash);
         return decryptedString;
+    }
+
+    void savePwHash_Fingerprint(Integer key) throws java.io.IOException {
+        HashMap<String, byte[]> map = encryptBytes(passwordHash.getBytes(), "asd");
+        saveMap(map, FINGERPRINT_FILENAME);
+    }
+
+    void loadPwHash_Fingerprint(Integer key) throws java.io.IOException, java.lang.ClassNotFoundException {
+        HashMap<String, byte[]> map = loadMap(FINGERPRINT_FILENAME);
+        passwordHash = decryptData(map, "asd"); // TODO: Should not encrypt with 'asd'
+        return;
     }
 
     boolean authenticate() {
         try {
-            FileInputStream fis = context.openFileInput (DATAPATH);
+            FileInputStream fis = context.openFileInput (DATA_FILENAME);
             ObjectInputStream ois = new ObjectInputStream(fis);
             HashMap<String, byte[]> map = (HashMap<String, byte[]>) ois.readObject();
-            String decryptedString = new String(decryptData(map, passwordHash));
+            String decryptedString = decryptData(map, passwordHash);
             ois.close();
             fis.close();
 
             return true;
         } catch (Exception e) {
-            int a = 2;
-            a = 3;
-            String asd = e.getMessage();
             return false;
         }
     }

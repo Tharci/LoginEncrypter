@@ -8,28 +8,23 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 
-public class impExpFragment extends Fragment
+public class ImpExpFragment extends Fragment
 {
     View myView;
     Button impBtn;
@@ -44,7 +39,7 @@ public class impExpFragment extends Fragment
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         myView = inflater.inflate(R.layout.layout_imp_exp, container, false);
 
-        filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + sharedStuff.DATAPATH;
+        filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + sharedStuff.DATA_FILENAME;
 
         impBtn = myView.findViewById(R.id.btn_import);
         expBtn = myView.findViewById(R.id.btn_export);
@@ -54,7 +49,7 @@ public class impExpFragment extends Fragment
         impBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sharedStuff.popUpWindowRunnable = new Runnable() {
+                SharedStuff.popUpWindowRunnable = new Runnable() {
                     @Override
                     public void run() {
                         if (!checkPermissionForReadExtertalStorage()) {
@@ -64,7 +59,7 @@ public class impExpFragment extends Fragment
                         }
                     }
                 };
-                startActivity(new Intent(getActivity(), popUpWindowActivity.class));
+                startActivity(new Intent(getActivity(), PopUpWindowActivity.class));
             }
         });
 
@@ -100,7 +95,7 @@ public class impExpFragment extends Fragment
     void exportData() {
         try
         {
-            FileInputStream fis = getActivity().openFileInput(sharedStuff.DATAPATH);
+            FileInputStream fis = getActivity().openFileInput(sharedStuff.DATA_FILENAME);
             int size = fis.available();
             byte[] buffer = new byte[size];
             fis.read(buffer);
@@ -123,7 +118,7 @@ public class impExpFragment extends Fragment
         String text = "";
         try {
             StringBuilder sb = new StringBuilder();
-            File file = new File(Environment.getExternalStorageDirectory().getPath() + "/" + sharedStuff.DATAPATH);
+            File file = new File(Environment.getExternalStorageDirectory().getPath() + "/" + SharedStuff.DATA_FILENAME);
             FileInputStream fis = new FileInputStream(file);
             BufferedInputStream bis = new BufferedInputStream(fis);
 
@@ -135,7 +130,7 @@ public class impExpFragment extends Fragment
             fis.close();
 
             try {
-                FileOutputStream fos = getContext().openFileOutput(sharedStuff.DATAPATH, Context.MODE_PRIVATE);
+                FileOutputStream fos = getContext().openFileOutput(SharedStuff.DATA_FILENAME, Context.MODE_PRIVATE);
                 fos.write(data);
                 fos.close();
             } catch (IOException ioe) {

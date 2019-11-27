@@ -9,9 +9,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.LinearLayoutCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,13 +22,16 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.LinearLayoutCompat;
+
 import com.github.aakira.expandablelayout.ExpandableLinearLayout;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class listLoginFragment extends Fragment {
+public class ListLoginFragment extends Fragment {
 
     View myView;
 
@@ -150,7 +150,7 @@ public class listLoginFragment extends Fragment {
 
             String[] dataByLines;
             try {
-                dataByLines = sharedStuff.readData().split("\n");
+                dataByLines = sharedStuff.loadData().split("\n");
             } catch (Exception e) {
                 Toast.makeText(getActivity().getBaseContext(), "Failed to decrypt data.",Toast.LENGTH_SHORT).show();
                 return;
@@ -266,7 +266,7 @@ public class listLoginFragment extends Fragment {
                                     public void run() {
                                         String[] data;
                                         try {
-                                            data = sharedStuff.readData().split("\n");
+                                            data = sharedStuff.loadData().split("\n");
                                         } catch (Exception e) {
                                             Toast.makeText(getActivity().getBaseContext(), "Could not save changes.",Toast.LENGTH_SHORT).show();
                                             return;
@@ -290,7 +290,7 @@ public class listLoginFragment extends Fragment {
                                         loadData();
                                     }
                                 };
-                                startActivity(new Intent(getActivity(), popUpWindowActivity.class));
+                                startActivity(new Intent(getActivity(), PopUpWindowActivity.class));
                             }
                         });
 
