@@ -4,9 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -16,15 +13,13 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
+
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.LinearLayoutCompat;
 
 import com.github.aakira.expandablelayout.ExpandableLinearLayout;
 
@@ -34,6 +29,7 @@ import java.util.ArrayList;
 public class ListLoginFragment extends Fragment {
 
     View myView;
+    LayoutInflater inflater;
 
     String[][] data;
 
@@ -45,13 +41,18 @@ public class ListLoginFragment extends Fragment {
     Handler mainHandler;
     LinearLayout mainLayout;
 
-    ArrayList<LinearLayout> detailLayouts;
-    ArrayList<Boolean> detailLayoutsStatus;
-    ArrayList<LinearLayout> verticalLayouts;
+    Handler animHandler;
+
+    ArrayList<LinearLayout> expandableLayouts;
+    ArrayList<Boolean> expandableLayoutsStatus;
+    final int ANIM_DURATION = 310; // +10 millisecond offset
+    ArrayList<Boolean> expandableLayoutsAnimOngoing;
+    ArrayList<LinearLayout> loginDataLayouts;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        this.inflater = inflater;
         myView = inflater.inflate(R.layout.list_login, container, false);
 
         sharedStuff = SharedStuff.getInstance();
@@ -68,9 +69,10 @@ public class ListLoginFragment extends Fragment {
         });
 
 
-        detailLayouts = new ArrayList<LinearLayout>();
-        detailLayoutsStatus = new ArrayList<Boolean>();
-        verticalLayouts = new ArrayList<LinearLayout>();
+        expandableLayouts = new ArrayList<>();
+        expandableLayoutsStatus = new ArrayList<>();
+        expandableLayoutsAnimOngoing = new ArrayList<>();
+        loginDataLayouts = new ArrayList<>();
 
         saveButton = myView.findViewById(R.id.saveButton);
         saveButton.setOnClickListener(new View.OnClickListener() {
@@ -81,6 +83,7 @@ public class ListLoginFragment extends Fragment {
         });
 
         mainHandler = new Handler();
+        animHandler = new Handler();
 
         loadData();
 
@@ -98,8 +101,8 @@ public class ListLoginFragment extends Fragment {
         StringBuilder dataOut = new StringBuilder();
         for (int j = 0; j < data.length; j++)
         {
-            EditText platformET = (EditText)((LinearLayout)((LinearLayout) verticalLayouts.get(j).getChildAt(0)).getChildAt(1)).getChildAt(0);
-            LinearLayout detailLayout = detailLayouts.get(j);
+            EditText platformET = (EditText)((LinearLayout)((LinearLayout) loginDataLayouts.get(j).getChildAt(0)).getChildAt(1)).getChildAt(0);
+            LinearLayout detailLayout = expandableLayouts.get(j);
 
             for (int k = 0; k < 5; k++)
             {
@@ -113,8 +116,6 @@ public class ListLoginFragment extends Fragment {
 
                 String text = editText.getText().toString();
                 dataOut.append(text).append("÷÷");
-
-                // editText.setSingleLine();
             }
 
             dataOut.append("\n");
@@ -130,23 +131,15 @@ public class ListLoginFragment extends Fragment {
         }
     }
 
-    public void addView(LinearLayout linearLayout)
-    {
-        LinearLayout mainLayout = myView.findViewById(R.id.mainLayout);
-        mainLayout.removeAllViews();
-        mainLayout.addView(linearLayout);
-    }
-
-
     class listLoginRunnable implements Runnable {
 
         LinearLayout mainLayout_2;
 
         @Override
         public void run() {
-            verticalLayouts.clear();
-            detailLayouts.clear();
-            detailLayoutsStatus.clear();
+            loginDataLayouts.clear();
+            expandableLayouts.clear();
+            expandableLayoutsStatus.clear();
 
             String[] dataByLines;
             try {
@@ -173,213 +166,116 @@ public class ListLoginFragment extends Fragment {
                 }
             });
 
-            int tv_width = 250;
-
             if (dataByLines[0].length()>1) {
-
-                final LinearLayoutCompat.LayoutParams verticalL_params = new LinearLayoutCompat.LayoutParams(
-                        LinearLayoutCompat.LayoutParams.MATCH_PARENT,
-                        LinearLayoutCompat.LayoutParams.MATCH_PARENT
-                );
-                verticalL_params.setMargins(7, 7, 7, 7);
-
-                final LinearLayoutCompat.LayoutParams details_params = new LinearLayoutCompat.LayoutParams(
-                        LinearLayoutCompat.LayoutParams.MATCH_PARENT,
-                        LinearLayoutCompat.LayoutParams.MATCH_PARENT
-                );
-                details_params.setMargins(7, 7, 7, 7);
-
-
-                LinearLayoutCompat.LayoutParams spaceFillParams = new LinearLayoutCompat.LayoutParams(
-                        LinearLayoutCompat.LayoutParams.WRAP_CONTENT,
-                        LinearLayoutCompat.LayoutParams.WRAP_CONTENT,
-                        100.0f
-                );
-
-                LinearLayoutCompat.LayoutParams deleteBtnParams = new LinearLayoutCompat.LayoutParams(
-                        LinearLayoutCompat.LayoutParams.WRAP_CONTENT,
-                        LinearLayoutCompat.LayoutParams.MATCH_PARENT,
-                        1.0f
-                );
-
-                LinearLayoutCompat.LayoutParams platHLParams = new LinearLayoutCompat.LayoutParams(
-                        LinearLayoutCompat.LayoutParams.MATCH_PARENT,
-                        LinearLayoutCompat.LayoutParams.WRAP_CONTENT
-                );
-                platHLParams.setMargins(30, 20, 0, 5);
-
-                LinearLayoutCompat.LayoutParams platRowHLParams = new LinearLayoutCompat.LayoutParams(
-                        LinearLayoutCompat.LayoutParams.MATCH_PARENT,
-                        LinearLayoutCompat.LayoutParams.WRAP_CONTENT
-                );
-                platRowHLParams.setMargins(30, 0, 100, 0);
-
                 for (int i = 0; i < data.length; i++) {
-                    try {
-                        final LinearLayout verticalLayout = new LinearLayout(context);
-                        verticalLayout.setOrientation(LinearLayout.VERTICAL);
-                        verticalLayout.setPadding(7, 7, 7, 7);
-                        verticalLayout.setLayoutParams(verticalL_params);
-                        verticalLayout.setBackgroundResource(R.drawable.row_listlogin);
+                    final LinearLayout loginDataLayout = (LinearLayout) inflater.inflate(R.layout.login_data_layout, null);
 
-                        String platform = data[i][0];
+                    String platform = data[i][0];
 
-                        LinearLayout platformRowHL = new LinearLayout(context);
-                        platformRowHL.setOrientation(LinearLayout.HORIZONTAL);
-                        platformRowHL.setLayoutParams(platRowHLParams);
+                    final EditText platformET = loginDataLayout.findViewById(R.id.platformET);
+                    platformET.setText(platform);
+                    platformET.setId(i * 5);
 
-                        LinearLayout platformHL = new LinearLayout(context);
-                        platformHL.setOrientation(LinearLayout.HORIZONTAL);
-                        platformHL.setLayoutParams(platHLParams);
-                        platformHL.setBackgroundResource(R.drawable.platform_listlogin);
+                    final ImageView deleteButton = loginDataLayout.findViewById(R.id.deleteBtn);
+                    deleteButton.setContentDescription(Integer.toString(i));
 
-                        TextView platformET = new EditText(context);
-                        platformET.setTextSize(20);
-                        platformET.setId(i * 5);
-                        platformET.setPadding(20, 0, 30, 8);
-                        platformET.setTypeface(null, Typeface.BOLD);
-                        platformET.setText(platform);
-                        platformET.setSingleLine();
-                        platformET.setBackgroundResource(R.drawable.edittext);
-                        platformET.setWidth(700);
-                        platformET.setLayoutParams(spaceFillParams);
-                        platformET.setTextColor(getResources().getColor(R.color.white));
-                        platformHL.addView(platformET);
+                    deleteButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            final int delete_idx = Integer.parseInt(deleteButton.getContentDescription().toString());
 
-                        final ImageButton deleteButton = new ImageButton(context);
-                        Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.trash_icon);
-                        Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, 65, 65, true);
-                        deleteButton.setImageBitmap(bMapScaled);
-                        deleteButton.setPadding(0, 0, 0, 0);
-                        deleteButton.setLayoutParams(deleteBtnParams);
-                        deleteButton.setContentDescription(Integer.toString(i));
-                        deleteButton.setBackgroundResource(R.drawable.edittext);
-                        platformHL.addView(deleteButton);
-
-                        deleteButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                final int delete_idx = Integer.parseInt(deleteButton.getContentDescription().toString());
-
-                                SharedStuff.popUpWindowRunnable = new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        String[] data;
-                                        try {
-                                            data = sharedStuff.loadData().split("\n");
-                                        } catch (Exception e) {
-                                            Toast.makeText(getActivity().getBaseContext(), "Could not save changes.",Toast.LENGTH_SHORT).show();
-                                            return;
-                                        }
-
-                                        StringBuilder dataOut = new StringBuilder();
-                                        for (int i=0; i<data.length; i++) {
-                                            if (i != delete_idx) {
-                                                dataOut.append(data[i]).append("\n");
-                                            }
-                                        }
-
-                                        try {
-                                            sharedStuff.saveData(dataOut.toString());
-                                        } catch (Exception e) {
-                                            Toast.makeText(getActivity().getBaseContext(), "Could not save changes.",Toast.LENGTH_SHORT).show();
-                                            return;
-                                        }
-
-                                        Toast.makeText(getActivity().getBaseContext(), "Changes have been saved.",Toast.LENGTH_SHORT).show();
-                                        loadData();
+                            SharedStuff.popUpWindowRunnable = new Runnable() {
+                                @Override
+                                public void run() {
+                                    String[] data;
+                                    try {
+                                        data = sharedStuff.loadData().split("\n");
+                                    } catch (Exception e) {
+                                        Toast.makeText(getActivity().getBaseContext(), "Could not save changes.",Toast.LENGTH_SHORT).show();
+                                        return;
                                     }
-                                };
-                                startActivity(new Intent(getActivity(), PopUpWindowActivity.class));
-                            }
-                        });
+
+                                    StringBuilder dataOut = new StringBuilder();
+                                    for (int i=0; i<data.length; i++) {
+                                        if (i != delete_idx) {
+                                            dataOut.append(data[i]).append("\n");
+                                        }
+                                    }
+
+                                    try {
+                                        sharedStuff.saveData(dataOut.toString());
+                                    } catch (Exception e) {
+                                        Toast.makeText(getActivity().getBaseContext(), "Could not save changes.",Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
+
+                                    Toast.makeText(getActivity().getBaseContext(), "Changes have been saved.",Toast.LENGTH_SHORT).show();
+                                    loadData();
+                                }
+                            };
+                            startActivity(new Intent(getActivity(), PopUpWindowActivity.class));
+                        }
+                    });
 
 
-                        final ImageView arrowButton = new ImageButton(context);
-                        Bitmap bMap_2 = BitmapFactory.decodeResource(getResources(), R.drawable.triangle_arrow);
-                        Bitmap bMapScaled_2 = Bitmap.createScaledBitmap(bMap_2, 60, 60, true);
-                        arrowButton.setImageBitmap(bMapScaled_2);
-                        arrowButton.setPadding(10, 10, 0, 0);
-                        arrowButton.setLayoutParams(deleteBtnParams);
-                        arrowButton.setBackgroundResource(R.drawable.edittext);
-                        platformRowHL.addView(arrowButton);
-
-                        platformRowHL.addView(platformHL);
-
-                        verticalLayout.addView(platformRowHL);
-
-                        final ExpandableLinearLayout detailsVertL = new ExpandableLinearLayout(context);
-                        detailsVertL.setOrientation(LinearLayout.VERTICAL);
-                        detailsVertL.setPadding(7, 7, 7, 20);
-                        detailsVertL.setLayoutParams(details_params);
-
-                        String[] titles = {"Username:", "Email:", "Password:", "Add. Info:"};
-
-                        for (int k = 0; k < 4; k++)
-                        {
-                            String fieldValue = "";
-                            if (k+1 < data[i].length) {
-                                fieldValue = data[i][k+1];
-                            }
-
-                            LinearLayout horLayout = new LinearLayout(context);
-                            horLayout.setOrientation(LinearLayout.HORIZONTAL);
-
-                            TextView titleTV = new TextView(context);
-                            titleTV.setText(titles[k]);
-                            titleTV.setPadding(40, 5, 5, 5);
-                            titleTV.setTextColor(getResources().getColor(R.color.colorDark0));
-                            titleTV.setWidth(tv_width);
-                            horLayout.addView(titleTV);
-
-                            EditText editText = new EditText(context);
-                            editText.setSingleLine();
-                            editText.setId(i * 5 + (k+1));
-                            editText.setPadding(5, 5, 5, 5);
-                            editText.setTextColor(getResources().getColor(R.color.white));
-                            editText.setText(fieldValue);
-                            editText.setBackgroundResource(R.drawable.edittext);
-                            editText.setSingleLine();
-                            editText.setMinWidth(400);
-                            horLayout.addView(editText);
-
-                            detailsVertL.addView(horLayout);
+                    int[] valueIDs = {R.id.usernameET, R.id.passwordET, R.id.emailET, R.id.addInfoET};
+                    for (int k = 0; k < 4; k++)
+                    {
+                        String fieldValue = "";
+                        if (k+1 < data[i].length) {
+                            fieldValue = data[i][k+1];
                         }
 
-                        verticalLayout.addView(detailsVertL);
+                        EditText editText = loginDataLayout.findViewById(valueIDs[k]);
+                        editText.setText(fieldValue);
+                        editText.setId(i * 5 + (k+1));
+                    }
 
-                        detailLayouts.add(detailsVertL);
-                        detailLayoutsStatus.add(false);
-                        verticalLayouts.add(verticalLayout);
+                    final ExpandableLinearLayout expandableLayout = loginDataLayout.findViewById(R.id.detailLayout);
+                    expandableLayouts.add(expandableLayout);
+                    expandableLayoutsStatus.add(false);
+                    expandableLayoutsAnimOngoing.add(false);
+                    loginDataLayouts.add(loginDataLayout);
 
-                        arrowButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                int index = (int)(((LinearLayout)((LinearLayout)verticalLayout.getChildAt(0)).getChildAt(1)).getChildAt(0).getId() * 0.2);
-                                if (detailLayoutsStatus.get(index))
-                                {
+                    final ImageView arrowButton = loginDataLayout.findViewById(R.id.arrowBtn);
+                    arrowButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            final int index = (int)(platformET.getId() * 0.2);
+
+                            if (!expandableLayoutsAnimOngoing.get(index)) {
+
+                                expandableLayoutsAnimOngoing.set(index, true);
+                                animHandler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        expandableLayoutsAnimOngoing.set(index, false);
+                                    }
+                                }, ANIM_DURATION);
+
+                                if (expandableLayoutsStatus.get(index)) {
                                     Animation rotateAnimation = AnimationUtils.loadAnimation(context, R.anim.rotate_up);
                                     arrowButton.startAnimation(rotateAnimation);
 
-                                    detailLayoutsStatus.set(index, false);
+                                    expandableLayoutsStatus.set(index, false);
                                 } else {
                                     Animation rotateAnimation = AnimationUtils.loadAnimation(context, R.anim.rotate_down);
                                     arrowButton.startAnimation(rotateAnimation);
 
-                                    detailLayoutsStatus.set(index, true);
+                                    expandableLayoutsStatus.set(index, true);
                                 }
-
-                                detailsVertL.toggle();
                             }
-                        });
 
-                        mainHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                mainLayout.addView(verticalLayout);
-                            }
-                        });
-                    } catch (Exception e) {}
+                            expandableLayout.toggle(ANIM_DURATION, null);
+                        }
+                    });
+
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mainLayout.addView(loginDataLayout);
+                        }
+                    });
                 }
             }
         }

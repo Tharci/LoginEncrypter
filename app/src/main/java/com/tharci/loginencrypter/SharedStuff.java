@@ -39,6 +39,7 @@ class SharedStuff {
 
     void popUopDOIT() {
         popUpWindowHandler.post(popUpWindowRunnable);
+        popUpWindowRunnable = null;
     }
 
     static String DATA_FILENAME = "data.dat";
@@ -98,7 +99,7 @@ class SharedStuff {
         {
             //Random salt for next step
             SecureRandom random = new SecureRandom();
-            byte salt[] = new byte[256];
+            byte[] salt = new byte[256];
             random.nextBytes(salt);
 
             //PBKDF2 - derive the key from the password, don't use passwords directly
@@ -185,8 +186,7 @@ class SharedStuff {
     }
 
     String loadData() throws java.io.IOException, java.lang.ClassNotFoundException {
-        String decryptedString = decryptData(loadMap(DATA_FILENAME), passwordHash);
-        return decryptedString;
+        return decryptData(loadMap(DATA_FILENAME), passwordHash);
     }
 
     void savePwHash_Fingerprint(Integer key) throws java.io.IOException {
@@ -197,7 +197,6 @@ class SharedStuff {
     void loadPwHash_Fingerprint(Integer key) throws java.io.IOException, java.lang.ClassNotFoundException {
         HashMap<String, byte[]> map = loadMap(FINGERPRINT_FILENAME);
         passwordHash = decryptData(map, key.toString());
-        return;
     }
 
     SecretKey getSecretKey() throws Exception {
@@ -211,7 +210,7 @@ class SharedStuff {
             FileInputStream fis = context.openFileInput (DATA_FILENAME);
             ObjectInputStream ois = new ObjectInputStream(fis);
             HashMap<String, byte[]> map = (HashMap<String, byte[]>) ois.readObject();
-            String decryptedString = decryptData(map, passwordHash);
+            decryptData(map, passwordHash);
             ois.close();
             fis.close();
 

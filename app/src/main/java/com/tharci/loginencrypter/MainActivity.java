@@ -13,11 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
-
-import java.security.KeyStore;
 import java.util.concurrent.Executor;
-
-import javax.crypto.SecretKey;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -49,12 +45,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-            //DELETES data.dat
-            /*File dir = getFilesDir();
-            File file = new File(dir, "data.dat");
-            file.delete();*/
 
-        //Checks if data.dat exists
         if (!sharedStuff.fileExists(SharedStuff.DATA_FILENAME)) {
             Intent intent = new Intent(this, CreatePassword.class);
             startActivity(intent);
@@ -73,8 +64,7 @@ public class MainActivity extends AppCompatActivity {
                                               @NonNull CharSequence errString) {
                 super.onAuthenticationError(errorCode, errString);
                 Toast.makeText(getApplicationContext(),
-                        "Authentication error: " + errString, Toast.LENGTH_SHORT)
-                        .show();
+                        "Authentication error: " + errString, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -132,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, NavigationMainActivity.class);
             startActivity(intent);
         } else {
-            errorMsgTV.setText("I'm sorry. You've got the wrong Password.");
+            errorMsgTV.setText("Wrong Password.");
         }
     }
 }

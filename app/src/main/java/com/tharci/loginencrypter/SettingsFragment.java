@@ -1,6 +1,7 @@
 package com.tharci.loginencrypter;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
@@ -40,13 +41,21 @@ public class SettingsFragment extends Fragment {
             fingerprintSwitch.setChecked(false);
         }
 
-        fingerprintSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        fingerprintSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
+            public void onClick(View v) {
+                if (fingerprintSwitch.isChecked()) {
                     setUpFingerprintAuth();
                 } else {
-                    sharedStuff.deleteFile(SharedStuff.FINGERPRINT_FILENAME);
+                    fingerprintSwitch.setChecked(true);
+                    SharedStuff.popUpWindowRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            sharedStuff.deleteFile(SharedStuff.FINGERPRINT_FILENAME);
+                            fingerprintSwitch.setChecked(false);
+                        }
+                    };
+                    startActivity(new Intent(getActivity(), PopUpWindowActivity.class));
                 }
             }
         });
