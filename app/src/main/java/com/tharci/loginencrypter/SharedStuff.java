@@ -10,12 +10,13 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
+import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.HashMap;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
@@ -189,14 +190,20 @@ class SharedStuff {
     }
 
     void savePwHash_Fingerprint(Integer key) throws java.io.IOException {
-        HashMap<String, byte[]> map = encryptBytes(passwordHash.getBytes(), "asd");
+        HashMap<String, byte[]> map = encryptBytes(passwordHash.getBytes(), key.toString());
         saveMap(map, FINGERPRINT_FILENAME);
     }
 
     void loadPwHash_Fingerprint(Integer key) throws java.io.IOException, java.lang.ClassNotFoundException {
         HashMap<String, byte[]> map = loadMap(FINGERPRINT_FILENAME);
-        passwordHash = decryptData(map, "asd"); // TODO: Should not encrypt with 'asd'
+        passwordHash = decryptData(map, key.toString());
         return;
+    }
+
+    SecretKey getSecretKey() throws Exception {
+        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
+        return ((SecretKey)keyStore.getKey("KEY", null));
     }
 
     boolean authenticate() {

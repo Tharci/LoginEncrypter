@@ -14,7 +14,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 
+import java.security.KeyStore;
 import java.util.concurrent.Executor;
+
+import javax.crypto.SecretKey;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -79,9 +82,8 @@ public class MainActivity extends AppCompatActivity {
                     @NonNull BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
 
-                int key = result.hashCode();
                 try {
-                    sharedStuff.loadPwHash_Fingerprint(key);
+                    sharedStuff.loadPwHash_Fingerprint(sharedStuff.getSecretKey().hashCode());
                     logIn();
                     Toast.makeText(getApplicationContext(),
                             "Authentication succeeded!", Toast.LENGTH_SHORT).show();
@@ -120,7 +122,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
 
     void logIn()
     {
