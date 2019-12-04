@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         logInBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sharedStuff.passwordHash = sharedStuff.hash(passwordET.getText().toString());
+                sharedStuff.passwordHash = sharedStuff.hashPassword(passwordET.getText().toString());
                 logIn();
             }
         });
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
                 super.onAuthenticationSucceeded(result);
 
                 try {
-                    sharedStuff.loadPwHash_Fingerprint(sharedStuff.getSecretKey().hashCode());
+                    sharedStuff.loadPwHash_Fingerprint();
                     logIn();
                     Toast.makeText(getApplicationContext(),
                             "Authentication succeeded!", Toast.LENGTH_SHORT).show();

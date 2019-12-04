@@ -2,6 +2,8 @@ package com.tharci.loginencrypter;
 
 import android.content.Context;
 import android.os.Handler;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
 import android.util.Log;
 
 import java.io.File;
@@ -16,6 +18,7 @@ import java.security.SecureRandom;
 import java.util.HashMap;
 
 import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
@@ -59,7 +62,7 @@ class SharedStuff {
         }
     }
 
-    void deleteFile(String filename) {
+    private void deleteFile(String filename) {
         File dir = context.getFilesDir();
         File file = new File(dir, filename);
         file.delete();
@@ -86,8 +89,7 @@ class SharedStuff {
         return hash;
     }
 
-    String hash(String string)
-    {
+    String hashPassword(String string) {
         return hashSimple(hashSimple(string) + randomStringForHash);
     }
 
@@ -162,7 +164,7 @@ class SharedStuff {
         return new String(decrypted);
     }
 
-    void saveMap(HashMap<String, byte[]> map, String filename) throws java.io.IOException {
+    private void saveMap(HashMap<String, byte[]> map, String filename) throws java.io.IOException {
         FileOutputStream fos = context.openFileOutput(filename, Context.MODE_PRIVATE);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(map);
@@ -170,7 +172,7 @@ class SharedStuff {
         fos.close();
     }
 
-    HashMap<String, byte[]> loadMap(String filename) throws java.io.IOException, java.lang.ClassNotFoundException {
+    private HashMap<String, byte[]> loadMap(String filename) throws java.io.IOException, java.lang.ClassNotFoundException {
         FileInputStream fis = context.openFileInput(filename);
         ObjectInputStream ois = new ObjectInputStream(fis);
         HashMap<String, byte[]> map = (HashMap<String, byte[]>) ois.readObject();
@@ -189,17 +191,41 @@ class SharedStuff {
         return decryptData(loadMap(DATA_FILENAME), passwordHash);
     }
 
-    void savePwHash_Fingerprint(Integer key) throws java.io.IOException {
-        HashMap<String, byte[]> map = encryptBytes(passwordHash.getBytes(), key.toString());
+    boolean isFingerprintAuthSetup() {
+        return fileExists(FINGERPRINT_FILENAME);
+    }
+
+    void deleteFingerprintAuth() {
+        deleteFile(FINGERPRINT_FILENAME);
+    }
+
+    void createFingerprintAuth() throws Exception {
+        generateSecretKey(new KeyGenParameterSpec.Builder(
+                "KEY",
+                KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                .setUserAuthenticationRequired(true)
+                .setInvalidatedByBiometricEnrollment(false)
+                .build());
+
+        HashMap<String, byte[]> map = encryptBytes(passwordHash.getBytes(), ((Integer)getSecretKey().hashCode()).toString());
         saveMap(map, FINGERPRINT_FILENAME);
     }
 
-    void loadPwHash_Fingerprint(Integer key) throws java.io.IOException, java.lang.ClassNotFoundException {
-        HashMap<String, byte[]> map = loadMap(FINGERPRINT_FILENAME);
-        passwordHash = decryptData(map, key.toString());
+    private void generateSecretKey(KeyGenParameterSpec keyGenParameterSpec) throws Exception {
+        KeyGenerator keyGenerator = KeyGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
+        keyGenerator.init(keyGenParameterSpec);
+        keyGenerator.generateKey();
     }
 
-    SecretKey getSecretKey() throws Exception {
+    void loadPwHash_Fingerprint() throws Exception {
+        HashMap<String, byte[]> map = loadMap(FINGERPRINT_FILENAME);
+        passwordHash = decryptData(map, ((Integer)getSecretKey().hashCode()).toString());
+    }
+
+    private SecretKey getSecretKey() throws Exception {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
         return ((SecretKey)keyStore.getKey("KEY", null));
@@ -217,6 +243,14 @@ class SharedStuff {
             return true;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    String validatePassword(String pw) {
+        if (pw.length() > 6) {
+            return "";
+        } else {
+            return "Password length must be at least 6.";
         }
     }
 }

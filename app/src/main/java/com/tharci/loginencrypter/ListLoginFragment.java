@@ -41,13 +41,17 @@ public class ListLoginFragment extends Fragment {
     Handler mainHandler;
     LinearLayout mainLayout;
 
+    Handler listDataHandler;
+    ListDataRunnable listDataRunnable;
+
     Handler animHandler;
 
-    ArrayList<LinearLayout> expandableLayouts;
     ArrayList<Boolean> expandableLayoutsStatus;
     final int ANIM_DURATION = 310; // +10 millisecond offset
     ArrayList<Boolean> expandableLayoutsAnimOngoing;
     ArrayList<LinearLayout> loginDataLayouts;
+
+    int[] valueIDs = {R.id.usernameET, R.id.emailET, R.id.passwordET, R.id.addInfoET};
 
     @Nullable
     @Override
@@ -63,13 +67,14 @@ public class ListLoginFragment extends Fragment {
         discardButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loadData();
+                listData();
                 Toast.makeText(getActivity().getBaseContext(), "Changes have been discarded.",Toast.LENGTH_SHORT).show();
             }
         });
 
+        listDataHandler = new Handler();
+        listDataRunnable = new ListDataRunnable();
 
-        expandableLayouts = new ArrayList<>();
         expandableLayoutsStatus = new ArrayList<>();
         expandableLayoutsAnimOngoing = new ArrayList<>();
         loginDataLayouts = new ArrayList<>();
@@ -85,61 +90,67 @@ public class ListLoginFragment extends Fragment {
         mainHandler = new Handler();
         animHandler = new Handler();
 
-        loadData();
+        listData();
 
         return myView;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        listDataHandler.removeCallbacks(listDataRunnable);
+    }
+
     @SuppressLint("ResourceType")
-    public void loadData()
+    public void listData()
     {
-        listLoginRunnable runnable = new listLoginRunnable();
-        new Thread(runnable).start();
+        listDataHandler.removeCallbacks(listDataRunnable);
+        listDataHandler.post(listDataRunnable);
     }
 
     void saveData() {
         StringBuilder dataOut = new StringBuilder();
-        for (int j = 0; j < data.length; j++)
-        {
-            EditText platformET = (EditText)((LinearLayout)((LinearLayout) loginDataLayouts.get(j).getChildAt(0)).getChildAt(1)).getChildAt(0);
-            LinearLayout detailLayout = expandableLayouts.get(j);
+        if (loginDataLayouts.size() == data.length) {
+            for (int j = 0; j < data.length; j++) {
+                EditText platformET = loginDataLayouts.get(j).findViewById(R.id.platformET);
 
-            for (int k = 0; k < 5; k++)
-            {
-                EditText editText;
-                if (k == 0)
-                {
-                    editText = platformET;
-                } else {
-                    editText = (EditText) ((LinearLayout) detailLayout.getChildAt(k-1)).getChildAt(1);
+                for (int k = 0; k < 5; k++) {
+                    EditText editText;
+                    if (k == 0) {
+                        editText = platformET;
+                    } else {
+                        editText = loginDataLayouts.get(j).findViewById(valueIDs[k - 1]);
+                    }
+
+                    String text = editText.getText().toString();
+                    dataOut.append(text).append(String.valueOf((char) 31));
                 }
 
-                String text = editText.getText().toString();
-                dataOut.append(text).append("÷÷");
+                dataOut.append("\n");
             }
 
-            dataOut.append("\n");
-        }
+            try {
+                sharedStuff.saveData(dataOut.toString());
 
-        try {
-            sharedStuff.saveData(dataOut.toString());
-
-            Toast.makeText(getActivity().getBaseContext(), "Changes have been saved.", Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            Toast.makeText(getActivity().getBaseContext(), "Failed to save changes. #2",Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
+                Toast.makeText(getActivity().getBaseContext(), "Changes have been saved.", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                Toast.makeText(getActivity().getBaseContext(), "Failed to save changes.", Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+            }
+        } else {
+            Toast.makeText(getActivity().getBaseContext(), "Failed to save changes. Not all data is loaded yet.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    class listLoginRunnable implements Runnable {
+    class ListDataRunnable implements Runnable {
 
         LinearLayout mainLayout_2;
 
         @Override
         public void run() {
             loginDataLayouts.clear();
-            expandableLayouts.clear();
             expandableLayoutsStatus.clear();
+            expandableLayoutsAnimOngoing.clear();
 
             String[] dataByLines;
             try {
@@ -153,7 +164,7 @@ public class ListLoginFragment extends Fragment {
 
             for (int i=0; i<dataByLines.length; i++)
             {
-                data[i] = dataByLines[i].split("÷÷");
+                data[i] = dataByLines[i].split(String.valueOf((char) 31));
             }
 
             final Context context = getActivity().getApplicationContext();
@@ -174,7 +185,6 @@ public class ListLoginFragment extends Fragment {
 
                     final EditText platformET = loginDataLayout.findViewById(R.id.platformET);
                     platformET.setText(platform);
-                    platformET.setId(i * 5);
 
                     final ImageView deleteButton = loginDataLayout.findViewById(R.id.deleteBtn);
                     deleteButton.setContentDescription(Integer.toString(i));
@@ -210,7 +220,7 @@ public class ListLoginFragment extends Fragment {
                                     }
 
                                     Toast.makeText(getActivity().getBaseContext(), "Changes have been saved.",Toast.LENGTH_SHORT).show();
-                                    loadData();
+                                    listData();
                                 }
                             };
                             startActivity(new Intent(getActivity(), PopUpWindowActivity.class));
@@ -218,7 +228,6 @@ public class ListLoginFragment extends Fragment {
                     });
 
 
-                    int[] valueIDs = {R.id.usernameET, R.id.passwordET, R.id.emailET, R.id.addInfoET};
                     for (int k = 0; k < 4; k++)
                     {
                         String fieldValue = "";
@@ -228,21 +237,19 @@ public class ListLoginFragment extends Fragment {
 
                         EditText editText = loginDataLayout.findViewById(valueIDs[k]);
                         editText.setText(fieldValue);
-                        editText.setId(i * 5 + (k+1));
                     }
 
-                    final ExpandableLinearLayout expandableLayout = loginDataLayout.findViewById(R.id.detailLayout);
-                    expandableLayouts.add(expandableLayout);
                     expandableLayoutsStatus.add(false);
                     expandableLayoutsAnimOngoing.add(false);
                     loginDataLayouts.add(loginDataLayout);
+
+                    final ExpandableLinearLayout expandableLayout = loginDataLayout.findViewById(R.id.detailLayout);
+                    final int index = i;
 
                     final ImageView arrowButton = loginDataLayout.findViewById(R.id.arrowBtn);
                     arrowButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            final int index = (int)(platformET.getId() * 0.2);
-
                             if (!expandableLayoutsAnimOngoing.get(index)) {
 
                                 expandableLayoutsAnimOngoing.set(index, true);

@@ -8,7 +8,6 @@ import android.security.keystore.KeyProperties;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -35,7 +34,7 @@ public class SettingsFragment extends Fragment {
         sharedStuff = SharedStuff.getInstance();
 
         fingerprintSwitch = myView.findViewById(R.id.fingerprintSwitch);
-        if (sharedStuff.fileExists(SharedStuff.FINGERPRINT_FILENAME)) {
+        if (sharedStuff.isFingerprintAuthSetup()) {
             fingerprintSwitch.setChecked(true);
         } else {
             fingerprintSwitch.setChecked(false);
@@ -51,12 +50,20 @@ public class SettingsFragment extends Fragment {
                     SharedStuff.popUpWindowRunnable = new Runnable() {
                         @Override
                         public void run() {
-                            sharedStuff.deleteFile(SharedStuff.FINGERPRINT_FILENAME);
+                            sharedStuff.deleteFingerprintAuth();
                             fingerprintSwitch.setChecked(false);
                         }
                     };
                     startActivity(new Intent(getActivity(), PopUpWindowActivity.class));
                 }
+            }
+        });
+
+        myView.findViewById(R.id.changePwBtn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), ChangePasswordActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -86,15 +93,7 @@ public class SettingsFragment extends Fragment {
                 super.onAuthenticationSucceeded(result);
 
                 try {
-                    generateSecretKey(new KeyGenParameterSpec.Builder(
-                            "KEY",
-                            KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                            .setUserAuthenticationRequired(true)
-                            .setInvalidatedByBiometricEnrollment(false)
-                            .build());
-                    sharedStuff.savePwHash_Fingerprint(sharedStuff.getSecretKey().hashCode());//result.getCryptoObject().getCipher().getIV().toString());
+                    sharedStuff.createFingerprintAuth();
                     fingerprintSwitch.setChecked(true);
                     Toast.makeText(getContext(),
                             "Authentication successfully saved!", Toast.LENGTH_SHORT).show();
@@ -122,12 +121,5 @@ public class SettingsFragment extends Fragment {
                 .build();
 
         biometricPrompt.authenticate(promptInfo);
-    }
-
-    private void generateSecretKey(KeyGenParameterSpec keyGenParameterSpec) throws Exception {
-        KeyGenerator keyGenerator = KeyGenerator.getInstance(
-                KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
-        keyGenerator.init(keyGenParameterSpec);
-        keyGenerator.generateKey();
     }
 }

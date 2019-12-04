@@ -38,8 +38,7 @@ public class NewLoginFragment extends Fragment {
         return myView;
     }
 
-    public void addLogin()
-    {
+    public void addLogin() {
         EditText platformET = getActivity().findViewById(R.id.platformET);
         EditText usernameET = getActivity().findViewById(R.id.usernameET);
         EditText emailET = getActivity().findViewById(R.id.emailET);
@@ -55,7 +54,7 @@ public class NewLoginFragment extends Fragment {
         addInfoET.setSingleLine();
 
         if ( !(platform.trim().isEmpty()) ) {
-            String dataRow = platform + "÷÷" + username + "÷÷" + email + "÷÷" + password + "÷÷" + addInfo + "÷÷\n";
+            String dataRow = platform + ((char)31) + username + ((char)31) + email + ((char)31) + password + ((char)31) + addInfo + "\n";
 
             try {
                 String data = sharedStuff.loadData() + dataRow;

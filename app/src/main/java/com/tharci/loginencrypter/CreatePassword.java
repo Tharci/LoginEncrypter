@@ -38,15 +38,16 @@ public class CreatePassword extends AppCompatActivity {
 
     public void gotItButton_onClick()
     {
-        if(passwordET.getText().toString().length() < 6)
+        String passwordValidationResult = sharedStuff.validatePassword(passwordET.getText().toString());
+        if(!passwordValidationResult.equals(""))
         {
-            errorMsgTV.setText("The minimum password length is 6.");
+            errorMsgTV.setText(passwordValidationResult);
         }
         else
         {
             try
             {
-                sharedStuff.passwordHash = sharedStuff.hash(passwordET.getText().toString());
+                sharedStuff.passwordHash = sharedStuff.hashPassword(passwordET.getText().toString());
 
                 sharedStuff.saveData("");
 
