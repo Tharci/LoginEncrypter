@@ -30,10 +30,9 @@ public class ListLoginFragment extends Fragment {
 
     View myView;
     LayoutInflater inflater;
+    Context context;
 
     String[][] data;
-
-    SharedStuff sharedStuff;
 
     Button discardButton;
     Button saveButton;
@@ -59,7 +58,7 @@ public class ListLoginFragment extends Fragment {
         this.inflater = inflater;
         myView = inflater.inflate(R.layout.list_login, container, false);
 
-        sharedStuff = SharedStuff.getInstance();
+        context = getActivity().getBaseContext();
 
         mainLayout = myView.findViewById(R.id.mainLayout);
 
@@ -68,7 +67,7 @@ public class ListLoginFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 listData();
-                Toast.makeText(getActivity().getBaseContext(), "Changes have been discarded.",Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Changes have been discarded.",Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -130,7 +129,7 @@ public class ListLoginFragment extends Fragment {
             }
 
             try {
-                sharedStuff.saveData(dataOut.toString());
+                DataService.saveData(getActivity(), dataOut.toString());
 
                 Toast.makeText(getActivity().getBaseContext(), "Changes have been saved.", Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
@@ -154,7 +153,7 @@ public class ListLoginFragment extends Fragment {
 
             String[] dataByLines;
             try {
-                dataByLines = sharedStuff.loadData().split("\n");
+                dataByLines = DataService.loadData(context).split("\n");
             } catch (Exception e) {
                 Toast.makeText(getActivity().getBaseContext(), "Failed to decrypt data.",Toast.LENGTH_SHORT).show();
                 return;
@@ -194,12 +193,12 @@ public class ListLoginFragment extends Fragment {
                         public void onClick(View v) {
                             final int delete_idx = Integer.parseInt(deleteButton.getContentDescription().toString());
 
-                            SharedStuff.popUpWindowRunnable = new Runnable() {
+                            DataService.popUpWindowRunnable = new Runnable() {
                                 @Override
                                 public void run() {
                                     String[] data;
                                     try {
-                                        data = sharedStuff.loadData().split("\n");
+                                        data = DataService.loadData(context).split("\n");
                                     } catch (Exception e) {
                                         Toast.makeText(getActivity().getBaseContext(), "Could not save changes.",Toast.LENGTH_SHORT).show();
                                         return;
@@ -213,7 +212,7 @@ public class ListLoginFragment extends Fragment {
                                     }
 
                                     try {
-                                        sharedStuff.saveData(dataOut.toString());
+                                        DataService.saveData(context, dataOut.toString());
                                     } catch (Exception e) {
                                         Toast.makeText(getActivity().getBaseContext(), "Could not save changes.",Toast.LENGTH_SHORT).show();
                                         return;

@@ -2,8 +2,6 @@ package com.tharci.loginencrypter;
 
 import android.content.Context;
 import android.os.Handler;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
 import android.util.Log;
 
 import java.io.File;
@@ -12,46 +10,33 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.HashMap;
 
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-class SharedStuff {
-    private static SharedStuff instance = new SharedStuff();
-    static SharedStuff getInstance()
-    {
-        return instance;
-    }
-
-    Context context;
-
+class DataService {
     private static Handler popUpWindowHandler = new Handler();
     static Runnable popUpWindowRunnable = new Runnable() {
         @Override
         public void run() {}
     };
 
-    void popUopDOIT() {
+    static void runPopupRunnable() {
         popUpWindowHandler.post(popUpWindowRunnable);
         popUpWindowRunnable = null;
     }
 
     static String DATA_FILENAME = "data.dat";
-    static String FINGERPRINT_FILENAME = "fingerprint.dat";
 
-    String passwordHash;
-    private static String randomStringForHash = "rPhHegQyJthn3dcThN1gHIUzylWzZJgAjGGueO8ZtzcwLlwiMsEIwIlyAebmhTFDqK6LvZCc5aCelcbXWjtmuQ9SOHCZCLDhCOs1ULW2o53NAbDU3QALCjsnSawD3FqB";
+    static String passwordHash;
 
-    boolean fileExists(String filename) {
+    static boolean fileExists(Context context, String filename) {
         try
         {
             InputStream inputStream = context.openFileInput(filename);
@@ -62,13 +47,50 @@ class SharedStuff {
         }
     }
 
-    private void deleteFile(String filename) {
+    static void deleteFile(Context context, String filename) {
         File dir = context.getFilesDir();
         File file = new File(dir, filename);
         file.delete();
     }
 
-    private String hashSimple(String string)
+    static String hashPassword(String string) {
+        String randomStringForHash = "rPhHegQyJthn3dcThN1gHIUzylWzZJgAjGGueO8ZtzcwLlwiMsEIwIlyAebmhTFDqK6LvZCc5aCelcbXWjtmuQ9SOHCZCLDhCOs1ULW2o53NAbDU3QALCjsnSawD3FqB";
+        return hashSimple(hashSimple(string) + randomStringForHash);
+    }
+
+    static void saveData(Context context, String data) throws java.io.IOException {
+        HashMap<String, byte[]> map = encryptData(data.getBytes(), passwordHash);
+        saveMap(context, map, DATA_FILENAME);
+    }
+
+    static String loadData(Context context) throws java.io.IOException, java.lang.ClassNotFoundException {
+        return decryptData(loadMap(context, DATA_FILENAME), passwordHash);
+    }
+
+    static boolean authenticate(Context context) {
+        try {
+            FileInputStream fis = context.openFileInput (DATA_FILENAME);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            HashMap<String, byte[]> map = (HashMap<String, byte[]>) ois.readObject();
+            decryptData(map, passwordHash);
+            ois.close();
+            fis.close();
+
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    static String validatePassword(String pw) {
+        if (pw.length() > 6) {
+            return "";
+        } else {
+            return "Password length must be at least 6.";
+        }
+    }
+
+    private static String hashSimple(String string)
     {
         String hash = "";
 
@@ -89,11 +111,7 @@ class SharedStuff {
         return hash;
     }
 
-    String hashPassword(String string) {
-        return hashSimple(hashSimple(string) + randomStringForHash);
-    }
-
-    private HashMap<String, byte[]> encryptBytes(byte[] plainTextBytes, String passwordString)
+    static HashMap<String, byte[]> encryptData(byte[] plainTextBytes, String passwordString)
     {
         HashMap<String, byte[]> map = new HashMap<String, byte[]>();
 
@@ -134,7 +152,7 @@ class SharedStuff {
         return map;
     }
 
-    private String decryptData(HashMap<String, byte[]> map, String passwordString)
+    static String decryptData(HashMap<String, byte[]> map, String passwordString)
     {
         byte[] decrypted = null;
         try
@@ -164,7 +182,7 @@ class SharedStuff {
         return new String(decrypted);
     }
 
-    private void saveMap(HashMap<String, byte[]> map, String filename) throws java.io.IOException {
+    static void saveMap(Context context, HashMap<String, byte[]> map, String filename) throws java.io.IOException {
         FileOutputStream fos = context.openFileOutput(filename, Context.MODE_PRIVATE);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(map);
@@ -172,7 +190,7 @@ class SharedStuff {
         fos.close();
     }
 
-    private HashMap<String, byte[]> loadMap(String filename) throws java.io.IOException, java.lang.ClassNotFoundException {
+    static HashMap<String, byte[]> loadMap(Context context, String filename) throws java.io.IOException, java.lang.ClassNotFoundException {
         FileInputStream fis = context.openFileInput(filename);
         ObjectInputStream ois = new ObjectInputStream(fis);
         HashMap<String, byte[]> map = (HashMap<String, byte[]>) ois.readObject();
@@ -180,77 +198,5 @@ class SharedStuff {
         fis.close();
 
         return map;
-    }
-
-    void saveData(String data) throws java.io.IOException {
-        HashMap<String, byte[]> map = encryptBytes(data.getBytes(), passwordHash);
-        saveMap(map, DATA_FILENAME);
-    }
-
-    String loadData() throws java.io.IOException, java.lang.ClassNotFoundException {
-        return decryptData(loadMap(DATA_FILENAME), passwordHash);
-    }
-
-    boolean isFingerprintAuthSetup() {
-        return fileExists(FINGERPRINT_FILENAME);
-    }
-
-    void deleteFingerprintAuth() {
-        deleteFile(FINGERPRINT_FILENAME);
-    }
-
-    void createFingerprintAuth() throws Exception {
-        generateSecretKey(new KeyGenParameterSpec.Builder(
-                "KEY",
-                KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                .setUserAuthenticationRequired(true)
-                .setInvalidatedByBiometricEnrollment(false)
-                .build());
-
-        HashMap<String, byte[]> map = encryptBytes(passwordHash.getBytes(), ((Integer)getSecretKey().hashCode()).toString());
-        saveMap(map, FINGERPRINT_FILENAME);
-    }
-
-    private void generateSecretKey(KeyGenParameterSpec keyGenParameterSpec) throws Exception {
-        KeyGenerator keyGenerator = KeyGenerator.getInstance(
-                KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
-        keyGenerator.init(keyGenParameterSpec);
-        keyGenerator.generateKey();
-    }
-
-    void loadPwHash_Fingerprint() throws Exception {
-        HashMap<String, byte[]> map = loadMap(FINGERPRINT_FILENAME);
-        passwordHash = decryptData(map, ((Integer)getSecretKey().hashCode()).toString());
-    }
-
-    private SecretKey getSecretKey() throws Exception {
-        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
-        return ((SecretKey)keyStore.getKey("KEY", null));
-    }
-
-    boolean authenticate() {
-        try {
-            FileInputStream fis = context.openFileInput (DATA_FILENAME);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            HashMap<String, byte[]> map = (HashMap<String, byte[]>) ois.readObject();
-            decryptData(map, passwordHash);
-            ois.close();
-            fis.close();
-
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    String validatePassword(String pw) {
-        if (pw.length() > 6) {
-            return "";
-        } else {
-            return "Password length must be at least 6.";
-        }
     }
 }

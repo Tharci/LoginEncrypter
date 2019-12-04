@@ -2,6 +2,7 @@ package com.tharci.loginencrypter;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,7 +22,8 @@ public class MainActivity extends AppCompatActivity {
     EditText passwordET;
     TextView errorMsgTV;
 
-    SharedStuff sharedStuff;
+    Handler errorMsgHandler;
+    Runnable errorMsgRunnable;
 
     ImageView fingerprintBtn;
 
@@ -29,30 +31,38 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setTitle("Login Encrypter");
 
         logInBtn = findViewById(R.id.logInBtn);
         passwordET = findViewById(R.id.passwordLoginET);
         errorMsgTV = findViewById(R.id.errorMsgTV);
 
-        sharedStuff = SharedStuff.getInstance();
-        sharedStuff.context = this;
-
         logInBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sharedStuff.passwordHash = sharedStuff.hashPassword(passwordET.getText().toString());
+                DataService.passwordHash = DataService.hashPassword(passwordET.getText().toString());
                 logIn();
             }
         });
 
 
-        if (!sharedStuff.fileExists(SharedStuff.DATA_FILENAME)) {
+        errorMsgHandler = new Handler();
+        errorMsgRunnable = new Runnable() {
+            @Override
+            public void run() {
+                errorMsgTV.setText("");
+            }
+        };
+
+
+        if (!DataService.fileExists(this, DataService.DATA_FILENAME)) {
             Intent intent = new Intent(this, CreatePassword.class);
             startActivity(intent);
             finish();
         }
 
 
+        /* Fingerprint Authentication */
         final BiometricPrompt biometricPrompt;
         final BiometricPrompt.PromptInfo promptInfo;
         final Executor executor = ContextCompat.getMainExecutor(this);
@@ -73,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 super.onAuthenticationSucceeded(result);
 
                 try {
-                    sharedStuff.loadPwHash_Fingerprint();
+                    FingerprintService.loadPwHash_Fingerprint(getApplicationContext());
                     logIn();
                     Toast.makeText(getApplicationContext(),
                             "Authentication succeeded!", Toast.LENGTH_SHORT).show();
@@ -86,9 +96,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAuthenticationFailed() {
                 super.onAuthenticationFailed();
-                Toast.makeText(getApplicationContext(), "Authentication failed",
-                        Toast.LENGTH_SHORT)
-                        .show();
+                Toast.makeText(getApplicationContext(),
+                        "Authentication failed", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -104,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
         fingerprintBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (sharedStuff.fileExists(SharedStuff.FINGERPRINT_FILENAME)) {
+                if (FingerprintService.isFingerprintAuthSetup(getApplicationContext())) {
                     biometricPrompt.authenticate(promptInfo);
                 } else {
                     Toast.makeText(getApplicationContext(), "Fingerprint authentication is not set up.", Toast.LENGTH_SHORT).show();
@@ -115,14 +124,20 @@ public class MainActivity extends AppCompatActivity {
 
     void logIn()
     {
-        if (sharedStuff.authenticate())
+        if (DataService.authenticate(this))
         {
             passwordET.setText("");
             errorMsgTV.setText("");
             Intent intent = new Intent(MainActivity.this, NavigationMainActivity.class);
             startActivity(intent);
         } else {
-            errorMsgTV.setText("Wrong Password.");
+            showError("Wrong Password.");
         }
+    }
+
+    void showError(String errorMsg) {
+        errorMsgTV.setText(errorMsg);
+        errorMsgHandler.removeCallbacks(errorMsgRunnable);
+        errorMsgHandler.postDelayed(errorMsgRunnable, 1500);
     }
 }

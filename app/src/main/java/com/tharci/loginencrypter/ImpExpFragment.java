@@ -32,24 +32,20 @@ public class ImpExpFragment extends Fragment
 
     String filePath;
 
-    SharedStuff sharedStuff;
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         myView = inflater.inflate(R.layout.layout_imp_exp, container, false);
 
-        filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + sharedStuff.DATA_FILENAME;
+        filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + DataService.DATA_FILENAME;
 
         impBtn = myView.findViewById(R.id.btn_import);
         expBtn = myView.findViewById(R.id.btn_export);
 
-        sharedStuff = SharedStuff.getInstance();
-
         impBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedStuff.popUpWindowRunnable = new Runnable() {
+                DataService.popUpWindowRunnable = new Runnable() {
                     @Override
                     public void run() {
                         if (!checkPermissionForReadExtertalStorage()) {
@@ -95,7 +91,7 @@ public class ImpExpFragment extends Fragment
     void exportData() {
         try
         {
-            FileInputStream fis = getActivity().openFileInput(sharedStuff.DATA_FILENAME);
+            FileInputStream fis = getActivity().openFileInput(DataService.DATA_FILENAME);
             int size = fis.available();
             byte[] buffer = new byte[size];
             fis.read(buffer);
@@ -118,7 +114,7 @@ public class ImpExpFragment extends Fragment
         String text = "";
         try {
             StringBuilder sb = new StringBuilder();
-            File file = new File(Environment.getExternalStorageDirectory().getPath() + "/" + SharedStuff.DATA_FILENAME);
+            File file = new File(Environment.getExternalStorageDirectory().getPath() + "/" + DataService.DATA_FILENAME);
             FileInputStream fis = new FileInputStream(file);
             BufferedInputStream bis = new BufferedInputStream(fis);
 
@@ -130,7 +126,7 @@ public class ImpExpFragment extends Fragment
             fis.close();
 
             try {
-                FileOutputStream fos = getContext().openFileOutput(SharedStuff.DATA_FILENAME, Context.MODE_PRIVATE);
+                FileOutputStream fos = getContext().openFileOutput(DataService.DATA_FILENAME, Context.MODE_PRIVATE);
                 fos.write(data);
                 fos.close();
             } catch (IOException ioe) {

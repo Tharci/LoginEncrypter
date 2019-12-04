@@ -13,18 +13,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public class NewLoginFragment extends Fragment {
-
     View myView;
     Button addLoginButton;
-
-    SharedStuff sharedStuff;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         myView = inflater.inflate(R.layout.new_login, container, false);
-
-        sharedStuff = SharedStuff.getInstance();
 
         addLoginButton = myView.findViewById(R.id.addLoginButton);
         addLoginButton.setOnClickListener(new View.OnClickListener() {
@@ -33,7 +28,6 @@ public class NewLoginFragment extends Fragment {
                 addLogin();
             }
         });
-
 
         return myView;
     }
@@ -57,7 +51,7 @@ public class NewLoginFragment extends Fragment {
             String dataRow = platform + ((char)31) + username + ((char)31) + email + ((char)31) + password + ((char)31) + addInfo + "\n";
 
             try {
-                String data = sharedStuff.loadData() + dataRow;
+                String data = DataService.loadData(getContext()) + dataRow;
 
                 platformET.setText("");
                 usernameET.setText("");
@@ -65,14 +59,14 @@ public class NewLoginFragment extends Fragment {
                 passwordET.setText("");
                 addInfoET.setText("");
 
-                sharedStuff.saveData(data);
+                DataService.saveData(getContext(), data);
 
-                Toast.makeText(getActivity().getBaseContext(), "Data has been saved.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Data has been saved.", Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
-                Toast.makeText(getActivity().getBaseContext(), "Save failed.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Save failed.", Toast.LENGTH_SHORT).show();
             }
         } else {
-            Toast.makeText(getActivity().getBaseContext(), "You cant leave field platform empty!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "You cant leave field platform empty!", Toast.LENGTH_SHORT).show();
         }
     }
 }

@@ -10,18 +10,13 @@ public class PopUpWindowActivity extends Activity {
     Button yesBtn;
     Button noBtn;
 
-    SharedStuff sharedStuff;
-
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.popup_layout);
 
-        sharedStuff = SharedStuff.getInstance();
-
         getWindow().setBackgroundDrawable(new ColorDrawable(
                 android.graphics.Color.TRANSPARENT));
-
 
         yesBtn = findViewById(R.id.yesButton);
         noBtn = findViewById(R.id.noButton);
@@ -29,7 +24,7 @@ public class PopUpWindowActivity extends Activity {
         yesBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sharedStuff.popUopDOIT();
+                DataService.runPopupRunnable();
                 finish();
             }
         });

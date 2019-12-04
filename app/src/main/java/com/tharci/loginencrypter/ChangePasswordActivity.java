@@ -1,6 +1,7 @@
 package com.tharci.loginencrypter;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,9 +11,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 public class ChangePasswordActivity extends Activity {
-
-    SharedStuff sharedStuff;
-
     EditText oldPwET;
     EditText newPwET;
     EditText newPwAgainET;
@@ -22,12 +20,14 @@ public class ChangePasswordActivity extends Activity {
     Handler errorMsgHandler;
     Runnable errorMsgRunnable;
 
+    Context context;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_password);
 
-        sharedStuff = SharedStuff.getInstance();
+        context = getApplicationContext();
 
         getWindow().setBackgroundDrawable(new ColorDrawable(
                 android.graphics.Color.TRANSPARENT));
@@ -49,23 +49,23 @@ public class ChangePasswordActivity extends Activity {
         savePwBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (sharedStuff.hashPassword(oldPwET.getText().toString()).equals(sharedStuff.passwordHash)) {
+                if (DataService.hashPassword(oldPwET.getText().toString()).equals(DataService.passwordHash)) {
                     if (newPwET.getText().toString().equals(newPwAgainET.getText().toString())) {
-                        String passwordValidationResult = sharedStuff.validatePassword(newPwET.getText().toString());
+                        String passwordValidationResult = DataService.validatePassword(newPwET.getText().toString());
                         if (passwordValidationResult.equals("")) {
                             try {
-                                String data = sharedStuff.loadData();
-                                sharedStuff.passwordHash = sharedStuff.hashPassword(newPwET.getText().toString());
-                                sharedStuff.saveData(data);
+                                String data = DataService.loadData(context);
+                                DataService.passwordHash = DataService.hashPassword(newPwET.getText().toString());
+                                DataService.saveData(context, data);
                             } catch (Exception e) {
                                 showError("Failed to save password.");
                             }
 
-                            if (sharedStuff.isFingerprintAuthSetup()) {
+                            if (FingerprintService.isFingerprintAuthSetup(context)) {
                                 try {
-                                    sharedStuff.createFingerprintAuth();
+                                    FingerprintService.createFingerprintAuth(context);
                                 } catch (Exception e) {
-                                    sharedStuff.deleteFingerprintAuth();
+                                    FingerprintService.deleteFingerprintAuth(context);
                                     showError("Failed to save fingerprint.");
                                 }
                             }

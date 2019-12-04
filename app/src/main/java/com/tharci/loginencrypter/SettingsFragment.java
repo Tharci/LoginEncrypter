@@ -3,8 +3,6 @@ package com.tharci.loginencrypter;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,12 +15,9 @@ import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import java.util.concurrent.Executor;
-import javax.crypto.KeyGenerator;
 
 public class SettingsFragment extends Fragment {
-
     View myView;
-    SharedStuff sharedStuff;
 
     Switch fingerprintSwitch;
 
@@ -31,10 +26,8 @@ public class SettingsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         myView = inflater.inflate(R.layout.settings_layout, container, false);
 
-        sharedStuff = SharedStuff.getInstance();
-
         fingerprintSwitch = myView.findViewById(R.id.fingerprintSwitch);
-        if (sharedStuff.isFingerprintAuthSetup()) {
+        if (FingerprintService.isFingerprintAuthSetup(getContext())) {
             fingerprintSwitch.setChecked(true);
         } else {
             fingerprintSwitch.setChecked(false);
@@ -47,10 +40,10 @@ public class SettingsFragment extends Fragment {
                     setUpFingerprintAuth();
                 } else {
                     fingerprintSwitch.setChecked(true);
-                    SharedStuff.popUpWindowRunnable = new Runnable() {
+                    DataService.popUpWindowRunnable = new Runnable() {
                         @Override
                         public void run() {
-                            sharedStuff.deleteFingerprintAuth();
+                            FingerprintService.deleteFingerprintAuth(getContext());
                             fingerprintSwitch.setChecked(false);
                         }
                     };
@@ -93,7 +86,7 @@ public class SettingsFragment extends Fragment {
                 super.onAuthenticationSucceeded(result);
 
                 try {
-                    sharedStuff.createFingerprintAuth();
+                    FingerprintService.createFingerprintAuth(getContext());
                     fingerprintSwitch.setChecked(true);
                     Toast.makeText(getContext(),
                             "Authentication successfully saved!", Toast.LENGTH_SHORT).show();

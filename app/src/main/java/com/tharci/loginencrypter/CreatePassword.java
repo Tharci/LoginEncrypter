@@ -15,8 +15,6 @@ public class CreatePassword extends AppCompatActivity {
     Button saveBtn;
     EditText passwordET;
 
-    SharedStuff sharedStuff;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,8 +23,6 @@ public class CreatePassword extends AppCompatActivity {
         errorMsgTV = findViewById(R.id.errorTV);
         saveBtn = findViewById(R.id.saveBtn);
         passwordET = findViewById(R.id.passwordCreateET);
-
-        sharedStuff = SharedStuff.getInstance();
 
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -38,7 +34,7 @@ public class CreatePassword extends AppCompatActivity {
 
     public void gotItButton_onClick()
     {
-        String passwordValidationResult = sharedStuff.validatePassword(passwordET.getText().toString());
+        String passwordValidationResult = DataService.validatePassword(passwordET.getText().toString());
         if(!passwordValidationResult.equals(""))
         {
             errorMsgTV.setText(passwordValidationResult);
@@ -47,9 +43,9 @@ public class CreatePassword extends AppCompatActivity {
         {
             try
             {
-                sharedStuff.passwordHash = sharedStuff.hashPassword(passwordET.getText().toString());
+                DataService.passwordHash = DataService.hashPassword(passwordET.getText().toString());
 
-                sharedStuff.saveData("");
+                DataService.saveData(this, "");
 
                 Intent intent = new Intent(this, MainActivity.class);
                 startActivity(intent);
